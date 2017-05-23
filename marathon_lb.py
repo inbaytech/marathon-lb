@@ -1437,7 +1437,7 @@ def get_apps(marathon):
             if service.backends:
                 apps_list.append(service)
 
-    if args.blue_green_merge
+    if args.blue_green_merge:
       return blue_green_merge(apps_list)
     else
       return apps_list
