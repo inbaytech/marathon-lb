@@ -114,8 +114,8 @@ class ServicePortAssigner(object):
         :return: The list of ports.    Note that if auto-assigning and ports
         become exhausted, a port may be returned as None.
         """
-        # Are we using 'BRIDGED' or 'USER' network?
-        if not is_host_network(app):
+        # Are we using 'USER' network?
+        if is_user_network(app):
             # Here we must use portMappings
             portMappings = app.get('container', {})\
                 .get('docker', {})\
@@ -295,16 +295,6 @@ def is_user_network(app):
         c.get('docker', {})\
         .get('network', '') == 'USER'
 
-def is_host_network(app):
-    """
-    Returns True if container network mode is set to HOST
-    :param app:  The application to check.
-    :return:  True if using HOST network, False otherwise.
-    """
-    c = app.get('container', {})
-    return c is not None and c.get('type', '') == 'DOCKER' and \
-        c.get('docker', {})\
-        .get('network', '') == 'HOST'
 
 def get_task_ip_and_ports(app, task):
     """
