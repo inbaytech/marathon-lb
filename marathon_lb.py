@@ -1437,7 +1437,28 @@ def get_apps(marathon):
             if service.backends:
                 apps_list.append(service)
 
-    return apps_list
+    if args.blue_green_merge
+      return blue_green_merge(apps_list)
+    else
+      return apps_list
+
+# If an app has both blues and greens deployed
+# we want to treat them as one combined app instead of separate apps
+# So we will strip blues and greens from the front end names and then merge
+# them together
+def blue_green_merge(apps_list):
+    merged_apps = []
+    for svc in apps_list:
+        svc.appId = re.sub('(/blue)|(/green)', '', svc.appId)
+    while len(apps_list) > 0:
+        svc = apps_list.pop()
+        if len([x for x in merged_apps if (x.appId == svc.appId and x.servicePort == svc.servicePort)]) > 0:
+            continue
+        dups = [x for x in apps_list if (x.appId == svc.appId and x.servicePort == svc.servicePort)]
+        for d in dups:
+            svc.backends = svc.backends | d.backends
+        merged_apps.append(svc)
+    return merged_apps
 
 def regenerate_config(apps, config_file, groups, bind_http_https,
                       ssl_certs, templater, haproxy_map):
@@ -1646,6 +1667,10 @@ def get_arg_parser():
                         help="Maximum port number to use when auto-assigning "
                              "service ports for IP-per-task applications",
                         type=int, default=10100)
+    parser.add_argument("--blue-green-merge",
+                        help="Consider apps that differ only a blue|green group"
+                             "to be the same app but without the colour group",
+                        action="store_true")
     parser = set_logging_args(parser)
     parser = set_marathon_auth_args(parser)
     return parser
