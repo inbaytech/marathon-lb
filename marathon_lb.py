@@ -27,7 +27,9 @@ import random
 import re
 import shlex
 import signal
+import socket
 import stat
+import struct
 import subprocess
 import sys
 import threading
@@ -553,6 +555,9 @@ def config(apps, groups, bind_http_https, ssl_certs, templater,
                      str(backendServer.port)))
             shortHashedServerName = hashlib.sha1(serverName.encode()) \
                 .hexdigest()[:10]
+            # Derive server IDs from their addresses so that they do not get changed over restart
+            serverID = struct.unpack("!I", socket.inet_aton(backendServer.ip))[0]
+            serverID = (divmod(serverID, 16384)[1] << 16) + backendServer.port
 
             server_health_check_options = None
             if app.healthCheck:
@@ -584,7 +589,7 @@ def config(apps, groups, bind_http_https, ssl_certs, templater,
                 shortHashedServerName if app.sticky else '',
                 healthCheckOptions=server_health_check_options
                 if server_health_check_options else '',
-                otherOptions=' disabled' if backendServer.draining else ''
+                otherOptions=" id {} disabled".format(serverID) if backendServer.draining else " id {}".format(serverID)
             )
 
     http_frontend_list.sort(key=lambda x: x[0], reverse=True)
@@ -1433,7 +1438,6 @@ def get_apps(marathon):
                 apps_list.append(service)
 
     return apps_list
-
 
 def regenerate_config(apps, config_file, groups, bind_http_https,
                       ssl_certs, templater, haproxy_map):
