@@ -1,6 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
+service rsyslog start
+
 SYSLOG_SOCKET=${SYSLOG_SOCKET:-/dev/null}
 
 LB_SERVICE="/marathon-lb/service/lb"
