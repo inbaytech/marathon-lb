@@ -1439,7 +1439,7 @@ def get_apps(marathon):
 
     if args.blue_green_merge:
       return blue_green_merge(apps_list)
-    else
+    else:
       return apps_list
 
 # If an app has both blues and greens deployed
