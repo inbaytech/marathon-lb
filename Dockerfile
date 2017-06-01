@@ -88,6 +88,7 @@ RUN set -x \
     && apt-get purge -y --auto-remove $buildDeps
 
 COPY  . /marathon-lb
+COPY docker /
 
 WORKDIR /marathon-lb
 
