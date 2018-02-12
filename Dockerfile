@@ -56,7 +56,6 @@ RUN set -x \
     && apt-get update \
     && apt-get install -y --no-install-recommends $buildDeps \
     && rm -rf /var/lib/apt/lists/* \
-    \
 # Build HAProxy
     && wget -O haproxy.tar.gz "https://www.haproxy.org/download/$HAPROXY_MAJOR/src/haproxy-$HAPROXY_VERSION.tar.gz" \
     && echo "$HAPROXY_MD5  haproxy.tar.gz" | md5sum -c \
@@ -77,14 +76,12 @@ RUN set -x \
         all \
         install-bin \
     && rm -rf /usr/src/haproxy \
-    \
 # Install Python dependencies
 # Install Python packages with --upgrade so we get new packages even if a system
 # package is already installed. Combine with --force-reinstall to ensure we get
 # a local package even if the system package is up-to-date as the system package
 # will probably be uninstalled with the build dependencies.
     && pip3 install --no-cache --upgrade --force-reinstall -r /marathon-lb/requirements.txt \
-    \
     && apt-get purge -y --auto-remove $buildDeps
 
 COPY  . /marathon-lb
