@@ -1,8 +1,9 @@
-FROM debian:stretch
+FROM debian:buster
 
 # runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
         ca-certificates \
+        inetutils-syslogd \
         iptables \
         libcurl3 \
         liblua5.3-0 \
@@ -11,12 +12,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         procps \
         python3 \
         runit \
+        gnupg-agent \
         socat \
-        rsyslog \
+        make \
     && rm -rf /var/lib/apt/lists/*
 
 ENV TINI_VERSION=v0.13.2 \
     TINI_GPG_KEY=595E85A6B1B4779EA4DAAEC70B588DFF0527A9B7
+
+# Multiple gpg --recv-keys are intended to help with flakiness of key servers.
 RUN set -x \
     && apt-get update && apt-get install -y --no-install-recommends dirmngr gpg wget \
         && rm -rf /var/lib/apt/lists/* \
@@ -24,6 +28,9 @@ RUN set -x \
     && wget -O tini.asc "https://github.com/krallin/tini/releases/download/$TINI_VERSION/tini-amd64.asc" \
     && export GNUPGHOME="$(mktemp -d)" \
     && gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "$TINI_GPG_KEY" \
+    || gpg --keyserver pool.sks-keyservers.net --recv-keys "$TINI_GPG_KEY" \
+    || gpg --keyserver keyserver.pgp.com --recv-keys "$TINI_GPG_KEY" \
+    || gpg --keyserver pgp.mit.edu --recv-keys "$TINI_GPG_KEY" \
     && gpg --batch --verify tini.asc tini \
     && rm -rf "$GNUPGHOME" tini.asc \
     && mv tini /usr/bin/tini \
@@ -33,20 +40,20 @@ RUN set -x \
 
 
 ENV HAPROXY_MAJOR=1.7 \
-    HAPROXY_VERSION=1.7.2 \
-    HAPROXY_MD5=7330b36f3764ebe409e9305803dc30e2
+    HAPROXY_VERSION=1.7.6 \
+    HAPROXY_MD5=8f4328cf66137f0dbf6901e065f603cc
 
 COPY requirements.txt /marathon-lb/
 
 RUN set -x \
     && buildDeps=' \
+        build-essential \
         gcc \
         libcurl4-openssl-dev \
         libffi-dev \
         liblua5.3-dev \
         libpcre3-dev \
         libssl-dev \
-        make \
         python3-dev \
         python3-pip \
         python3-setuptools \
