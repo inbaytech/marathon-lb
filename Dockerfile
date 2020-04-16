@@ -5,9 +5,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         ca-certificates \
         inetutils-syslogd \
         iptables \
-        libcurl3 \
+        libcurl4 \
         liblua5.3-0 \
-        libssl1.0.2 \
+        libssl1.1 \
         openssl \
         procps \
         python3 \
